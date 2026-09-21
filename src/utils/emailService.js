@@ -1,8 +1,5 @@
 const nodemailer = require("nodemailer");
 
-// Lazily builds a transporter only if SMTP credentials are configured.
-// Without SMTP set, this logs to the console instead of failing, so the
-// parent-report flow still works end-to-end in local development.
 function buildTransporter() {
   if (!process.env.SMTP_HOST) return null;
   return nodemailer.createTransport({

@@ -13,14 +13,11 @@ async function search({ query, grade, section }) {
   return Student.find(filter).limit(50).sort({ fullName: 1 });
 }
 
-// Full profile used by the teacher "student detail" screen: attendance bars,
-// recent quiz scores, and parent/guardian info.
 async function getFullProfile(studentId) {
   const student = await Student.findById(studentId);
   if (!student) throw new ApiError(404, "Student not found");
 
   const stats = await attendanceService.getStudentStats(studentId);
-
   const last8Weeks = await getWeeklyAttendance(studentId, 8);
 
   const attempts = await QuizAttempt.find({ student: studentId, status: "completed" })
@@ -34,19 +31,10 @@ async function getFullProfile(studentId) {
   }));
 
   const overallAverage = recentQuizScores.length
-    ? Math.round(
-        recentQuizScores.reduce((sum, q) => sum + (q.scorePercent || 0), 0) /
-          recentQuizScores.length
-      )
+    ? Math.round(recentQuizScores.reduce((sum, q) => sum + (q.scorePercent || 0), 0) / recentQuizScores.length)
     : null;
 
-  return {
-    student,
-    attendance: stats,
-    attendanceLast8Weeks: last8Weeks,
-    recentQuizScores,
-    overallAverage,
-  };
+  return { student, attendance: stats, attendanceLast8Weeks: last8Weeks, recentQuizScores, overallAverage };
 }
 
 async function getWeeklyAttendance(studentId, weeks) {
@@ -70,8 +58,6 @@ async function getWeeklyAttendance(studentId, weeks) {
   });
 }
 
-// Home-screen summary: attendance rate, lectures watched, saved files count,
-// quizzes due — mirrors the four stat cards on the student dashboard.
 async function getDashboardSummary(studentId) {
   const attendance = await attendanceService.getStudentStats(studentId);
   const lecturesWatched = await LectureProgress.countDocuments({

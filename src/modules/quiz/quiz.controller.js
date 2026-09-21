@@ -8,11 +8,7 @@ const create = asyncHandler(async (req, res) => {
 });
 
 const update = asyncHandler(async (req, res) => {
-  const quiz = await service.updateQuiz({
-    quizId: req.params.id,
-    teacherId: req.user._id,
-    updates: req.body,
-  });
+  const quiz = await service.updateQuiz({ quizId: req.params.id, teacherId: req.user._id, updates: req.body });
   sendResponse(res, 200, "Quiz updated", quiz);
 });
 
@@ -27,43 +23,33 @@ const remove = asyncHandler(async (req, res) => {
 });
 
 const list = asyncHandler(async (req, res) => {
-  const quizzes =
-    req.userRole === "teacher"
-      ? await service.listForTeacher(req.user._id)
-      : await service.listForStudent(req.user);
+  const quizzes = req.userRole === "teacher"
+    ? await service.listForTeacher(req.user._id)
+    : await service.listForStudent(req.user);
   sendResponse(res, 200, "Quizzes", quizzes);
 });
 
 const getOne = asyncHandler(async (req, res) => {
-  const quiz =
-    req.userRole === "teacher"
-      ? await service.getForTeacher({ quizId: req.params.id, teacherId: req.user._id })
-      : await service.getForStudent(req.params.id);
+  const quiz = req.userRole === "teacher"
+    ? await service.getForTeacher({ quizId: req.params.id, teacherId: req.user._id })
+    : await service.getForStudent(req.params.id);
   sendResponse(res, 200, "Quiz", quiz);
 });
 
 const startAttempt = asyncHandler(async (req, res) => {
-  const attempt = await service.startAttempt({
-    quizId: req.params.id,
-    studentId: req.user._id,
-  });
+  const attempt = await service.startAttempt({ quizId: req.params.id, studentId: req.user._id });
   sendResponse(res, 201, "Attempt started", attempt);
 });
 
 const submitAttempt = asyncHandler(async (req, res) => {
   const attempt = await service.submitAttempt({
-    attemptId: req.params.attemptId,
-    studentId: req.user._id,
-    answers: req.body.answers,
+    attemptId: req.params.attemptId, studentId: req.user._id, answers: req.body.answers,
   });
   sendResponse(res, 200, "Quiz submitted", attempt);
 });
 
 const myAttempt = asyncHandler(async (req, res) => {
-  const attempt = await service.getMyAttempt({
-    quizId: req.params.id,
-    studentId: req.user._id,
-  });
+  const attempt = await service.getMyAttempt({ quizId: req.params.id, studentId: req.user._id });
   sendResponse(res, 200, "My attempt", attempt);
 });
 
@@ -72,15 +58,4 @@ const results = asyncHandler(async (req, res) => {
   sendResponse(res, 200, "Quiz results", data);
 });
 
-module.exports = {
-  create,
-  update,
-  publish,
-  remove,
-  list,
-  getOne,
-  startAttempt,
-  submitAttempt,
-  myAttempt,
-  results,
-};
+module.exports = { create, update, publish, remove, list, getOne, startAttempt, submitAttempt, myAttempt, results };

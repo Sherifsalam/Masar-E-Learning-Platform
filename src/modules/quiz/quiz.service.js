@@ -8,10 +8,7 @@ async function createQuiz(teacherId, payload) {
 }
 
 async function updateQuiz({ quizId, teacherId, updates }) {
-  const quiz = await Quiz.findOneAndUpdate({ _id: quizId, teacher: teacherId }, updates, {
-    new: true,
-    runValidators: true,
-  });
+  const quiz = await Quiz.findOneAndUpdate({ _id: quizId, teacher: teacherId }, updates, { new: true, runValidators: true });
   if (!quiz) throw new ApiError(404, "Quiz not found");
   return quiz;
 }
@@ -33,61 +30,40 @@ async function deleteQuiz({ quizId, teacherId }) {
   return true;
 }
 
-// Teacher dashboard list: each quiz plus how many students attempted it and
-// the average score, matching the "Your quizzes" / quiz-card views.
 async function listForTeacher(teacherId) {
   const quizzes = await Quiz.find({ teacher: teacherId }).sort({ createdAt: -1 });
 
-  return Promise.all(
-    quizzes.map(async (quiz) => {
-      const attempts = await QuizAttempt.find({ quiz: quiz._id, status: "completed" });
-      const totalStudents = await Student.countDocuments(
-        quiz.grade && quiz.section ? { grade: quiz.grade, section: quiz.section } : {}
-      );
-      const avgScore = attempts.length
-        ? Math.round(attempts.reduce((s, a) => s + (a.scorePercent || 0), 0) / attempts.length)
-        : null;
+  return Promise.all(quizzes.map(async (quiz) => {
+    const attempts = await QuizAttempt.find({ quiz: quiz._id, status: "completed" });
+    const totalStudents = await Student.countDocuments(
+      quiz.grade && quiz.section ? { grade: quiz.grade, section: quiz.section } : {}
+    );
+    const avgScore = attempts.length
+      ? Math.round(attempts.reduce((s, a) => s + (a.scorePercent || 0), 0) / attempts.length)
+      : null;
 
-      return {
-        ...quiz.toObject(),
-        completedCount: attempts.length,
-        totalStudents,
-        avgScore,
-      };
-    })
-  );
+    return { ...quiz.toObject(), completedCount: attempts.length, totalStudents, avgScore };
+  }));
 }
 
-// Student-facing list: only published/scheduled quizzes for their class,
-// with their own attempt status attached.
 async function listForStudent(student) {
   const quizzes = await Quiz.find({
     status: { $in: ["published", "scheduled"] },
     $or: [{ grade: "" }, { grade: student.grade }],
   }).sort({ createdAt: -1 });
 
-  return Promise.all(
-    quizzes.map(async (quiz) => {
-      const attempt = await QuizAttempt.findOne({ quiz: quiz._id, student: student._id });
-      return {
-        ...quiz.toObject(),
-        myAttemptStatus: attempt ? attempt.status : "not_started",
-        myScorePercent: attempt ? attempt.scorePercent : null,
-      };
-    })
-  );
+  return Promise.all(quizzes.map(async (quiz) => {
+    const attempt = await QuizAttempt.findOne({ quiz: quiz._id, student: student._id });
+    return { ...quiz.toObject(), myAttemptStatus: attempt ? attempt.status : "not_started", myScorePercent: attempt ? attempt.scorePercent : null };
+  }));
 }
 
-// Returns the quiz WITHOUT correct answers — safe to send to a student
-// while they are taking it.
 function stripAnswers(quiz) {
   const obj = quiz.toObject ? quiz.toObject() : quiz;
   return {
     ...obj,
     questions: obj.questions.map((q) => ({
-      _id: q._id,
-      text: q.text,
-      type: q.type,
+      _id: q._id, text: q.text, type: q.type,
       options: q.options.map((o) => ({ _id: o._id, text: o.text })),
       points: q.points,
     })),
@@ -123,8 +99,6 @@ async function startAttempt({ quizId, studentId }) {
   return QuizAttempt.create({ quiz: quizId, student: studentId });
 }
 
-// Grades mcq / true_false automatically; short_answer is matched
-// case-insensitively against the stored correct answer.
 async function submitAttempt({ attemptId, studentId, answers }) {
   const attempt = await QuizAttempt.findOne({ _id: attemptId, student: studentId });
   if (!attempt) throw new ApiError(404, "Quiz attempt not found");
@@ -145,13 +119,9 @@ async function submitAttempt({ attemptId, studentId, answers }) {
     let isCorrect = false;
 
     if (question.type === "short_answer") {
-      isCorrect =
-        (ans.shortAnswerText || "").trim().toLowerCase() ===
-        (question.correctShortAnswer || "").trim().toLowerCase();
+      isCorrect = (ans.shortAnswerText || "").trim().toLowerCase() === (question.correctShortAnswer || "").trim().toLowerCase();
     } else {
-      isCorrect =
-        question.correctOptionId &&
-        String(question.correctOptionId) === String(ans.selectedOptionId);
+      isCorrect = question.correctOptionId && String(question.correctOptionId) === String(ans.selectedOptionId);
     }
 
     if (isCorrect) earnedPoints += question.points;
@@ -178,16 +148,11 @@ async function getMyAttempt({ quizId, studentId }) {
   return QuizAttempt.findOne({ quiz: quizId, student: studentId });
 }
 
-// Results & analytics screen: score distribution buckets, weakest
-// questions by correct-rate, and the per-student score table.
 async function getResults({ quizId, teacherId }) {
   const quiz = await Quiz.findOne({ _id: quizId, teacher: teacherId });
   if (!quiz) throw new ApiError(404, "Quiz not found");
 
-  const attempts = await QuizAttempt.find({ quiz: quizId }).populate(
-    "student",
-    "fullName studentId avatarInitials"
-  );
+  const attempts = await QuizAttempt.find({ quiz: quizId }).populate("student", "fullName studentId avatarInitials");
   const completed = attempts.filter((a) => a.status === "completed");
 
   const buckets = [
@@ -203,20 +168,13 @@ async function getResults({ quizId, teacherId }) {
   });
 
   const questionStats = quiz.questions.map((q) => {
-    const relevantAnswers = completed.flatMap((a) =>
-      a.answers.filter((ans) => String(ans.question) === String(q._id))
-    );
+    const relevantAnswers = completed.flatMap((a) => a.answers.filter((ans) => String(ans.question) === String(q._id)));
     const correctCount = relevantAnswers.filter((a) => a.isCorrect).length;
-    const correctRate = relevantAnswers.length
-      ? Math.round((correctCount / relevantAnswers.length) * 100)
-      : null;
+    const correctRate = relevantAnswers.length ? Math.round((correctCount / relevantAnswers.length) * 100) : null;
     return { questionId: q._id, text: q.text, correctRate };
   });
 
-  const weakestQuestions = questionStats
-    .filter((q) => q.correctRate !== null)
-    .sort((a, b) => a.correctRate - b.correctRate)
-    .slice(0, 5);
+  const weakestQuestions = questionStats.filter((q) => q.correctRate !== null).sort((a, b) => a.correctRate - b.correctRate).slice(0, 5);
 
   const averageScore = completed.length
     ? Math.round(completed.reduce((s, a) => s + a.scorePercent, 0) / completed.length)
@@ -228,31 +186,13 @@ async function getResults({ quizId, teacherId }) {
     status: a.status,
     startedAt: a.startedAt,
     completedAt: a.completedAt,
-    timeTakenSeconds:
-      a.completedAt && a.startedAt ? Math.round((a.completedAt - a.startedAt) / 1000) : null,
+    timeTakenSeconds: a.completedAt && a.startedAt ? Math.round((a.completedAt - a.startedAt) / 1000) : null,
   }));
 
-  return {
-    completedCount: completed.length,
-    totalAttempts: attempts.length,
-    averageScore,
-    distribution: buckets,
-    weakestQuestions,
-    studentScores,
-  };
+  return { completedCount: completed.length, totalAttempts: attempts.length, averageScore, distribution: buckets, weakestQuestions, studentScores };
 }
 
 module.exports = {
-  createQuiz,
-  updateQuiz,
-  publishQuiz,
-  deleteQuiz,
-  listForTeacher,
-  listForStudent,
-  getForTeacher,
-  getForStudent,
-  startAttempt,
-  submitAttempt,
-  getMyAttempt,
-  getResults,
+  createQuiz, updateQuiz, publishQuiz, deleteQuiz, listForTeacher, listForStudent,
+  getForTeacher, getForStudent, startAttempt, submitAttempt, getMyAttempt, getResults,
 };

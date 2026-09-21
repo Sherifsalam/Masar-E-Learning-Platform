@@ -15,11 +15,7 @@ async function upload({ teacherId, title, subject, grade, section, file }) {
   if (!file) throw new ApiError(400, "No file was uploaded");
 
   return FileResource.create({
-    title,
-    subject,
-    grade,
-    section,
-    teacher: teacherId,
+    title, subject, grade, section, teacher: teacherId,
     fileType: inferFileType(file.originalname),
     storedFileName: file.filename,
     originalFileName: file.originalname,

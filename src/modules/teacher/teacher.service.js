@@ -7,8 +7,6 @@ function startOfDay(date) {
   return d;
 }
 
-// Powers the four stat cards on the teacher attendance-review screen:
-// total students, present / absent / late counts for the selected day.
 async function getAttendanceOverview({ teacherId, subject, grade, section, date }) {
   const day = startOfDay(date || new Date());
 

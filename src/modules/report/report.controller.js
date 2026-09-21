@@ -5,12 +5,7 @@ const service = require("./report.service");
 const send = asyncHandler(async (req, res) => {
   const { studentId, period, include, teacherNote, sendMethod } = req.body;
   const report = await service.generateAndSend({
-    teacherId: req.user._id,
-    studentId,
-    period,
-    include,
-    teacherNote,
-    sendMethod,
+    teacherId: req.user._id, studentId, period, include, teacherNote, sendMethod,
   });
   sendResponse(res, 201, "Report sent", report);
 });

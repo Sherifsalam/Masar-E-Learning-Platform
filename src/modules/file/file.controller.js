@@ -4,12 +4,8 @@ const service = require("./file.service");
 
 const upload = asyncHandler(async (req, res) => {
   const record = await service.upload({
-    teacherId: req.user._id,
-    title: req.body.title,
-    subject: req.body.subject,
-    grade: req.body.grade,
-    section: req.body.section,
-    file: req.file,
+    teacherId: req.user._id, title: req.body.title, subject: req.body.subject,
+    grade: req.body.grade, section: req.body.section, file: req.file,
   });
   sendResponse(res, 201, "File uploaded", record);
 });

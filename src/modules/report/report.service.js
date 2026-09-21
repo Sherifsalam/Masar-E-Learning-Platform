@@ -26,21 +26,10 @@ async function generateAndSend({ teacherId, studentId, period, include, teacherN
   const dashboard = await studentService.getDashboardSummary(studentId);
   const { recentQuizScores, overallAverage } = await studentService.getFullProfile(studentId);
 
-  const snapshot = {
-    attendance,
-    lecturesWatched: dashboard.lecturesWatched,
-    recentQuizScores,
-    overallAverage,
-  };
+  const snapshot = { attendance, lecturesWatched: dashboard.lecturesWatched, recentQuizScores, overallAverage };
 
   const report = await Report.create({
-    student: studentId,
-    teacher: teacherId,
-    period,
-    include,
-    teacherNote,
-    sendMethod,
-    snapshot,
+    student: studentId, teacher: teacherId, period, include, teacherNote, sendMethod, snapshot,
   });
 
   if (sendMethod === "email" && student.parentEmail) {
@@ -50,7 +39,6 @@ async function generateAndSend({ teacherId, studentId, period, include, teacherN
       html: renderReportHtml({ student, teacher, period, snapshot, teacherNote, include }),
     });
   }
-  // sms / whatsapp delivery would plug in a provider (e.g. Twilio) here.
 
   return report;
 }

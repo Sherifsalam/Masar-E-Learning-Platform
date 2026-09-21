@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+const path = require("path");
 
 const { notFound, errorHandler } = require("./middleware/error.middleware");
 
@@ -13,16 +14,34 @@ const fileRoutes = require("./modules/file/file.routes");
 const quizRoutes = require("./modules/quiz/quiz.routes");
 const reportRoutes = require("./modules/report/report.routes");
 
-// Builds and returns the configured Express app. Kept separate from
-// index.js so the app can be imported directly in tests without
-// binding to a port or connecting to the database.
 function bootstrap() {
   const app = express();
 
-  app.use(cors({ origin: process.env.CLIENT_ORIGIN || "*", credentials: true }));
+  // CLIENT_ORIGIN accepts a comma-separated list so the Vite dev server and a
+  // deployed frontend can both be allowed. Unset means "allow any origin".
+  const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin || !allowedOrigins.length || allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+      },
+      credentials: true,
+    })
+  );
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   if (process.env.NODE_ENV !== "test") app.use(morgan("dev"));
+
+  // Serve the frontend prototype directly so it can call the API on the
+  // same origin (avoids CORS headaches in local dev).
+  app.use(express.static(path.join(__dirname, "..", "public")));
 
   app.get("/api/health", (req, res) => res.json({ success: true, message: "Masar API is running" }));
 

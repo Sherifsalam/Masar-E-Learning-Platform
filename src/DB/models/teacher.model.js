@@ -5,7 +5,7 @@ const teacherSchema = new mongoose.Schema(
     fullName: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, select: false },
-    subject: { type: String, required: true }, // e.g. "Biology"
+    subject: { type: String, required: true },
     avatarInitials: { type: String, default: "" },
   },
   { timestamps: true }

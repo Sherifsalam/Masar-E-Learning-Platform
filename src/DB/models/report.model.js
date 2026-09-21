@@ -4,7 +4,7 @@ const reportSchema = new mongoose.Schema(
   {
     student: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
     teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher", required: true },
-    period: { type: String, required: true }, // e.g. "August 2026"
+    period: { type: String, required: true },
     include: {
       attendance: { type: Boolean, default: true },
       grades: { type: Boolean, default: true },
@@ -13,7 +13,7 @@ const reportSchema = new mongoose.Schema(
     },
     teacherNote: { type: String, default: "" },
     sendMethod: { type: String, enum: ["email", "sms", "whatsapp"], default: "email" },
-    snapshot: { type: mongoose.Schema.Types.Mixed, default: {} }, // computed data at send time
+    snapshot: { type: mongoose.Schema.Types.Mixed, default: {} },
     sentAt: { type: Date, default: Date.now },
   },
   { timestamps: true }

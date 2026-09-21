@@ -5,12 +5,7 @@ const ApiError = require("../../utils/apiError");
 const { signToken } = require("../../utils/tokenUtils");
 
 function initials(name) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join("");
+  return name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
 }
 
 async function signupStudent(payload) {
@@ -21,11 +16,7 @@ async function signupStudent(payload) {
 
   const hashed = await bcrypt.hash(password, 10);
   const student = await Student.create({
-    fullName,
-    studentId,
-    email,
-    grade,
-    section,
+    fullName, studentId, email, grade, section,
     password: hashed,
     avatarInitials: initials(fullName),
   });
@@ -35,13 +26,11 @@ async function signupStudent(payload) {
 }
 
 async function loginStudent({ identifier, password }) {
-  // identifier can be email or studentId
   const student = await Student.findOne({
     $or: [{ email: identifier }, { studentId: identifier }],
   }).select("+password");
 
   if (!student) throw new ApiError(401, "Invalid credentials");
-
   const match = await bcrypt.compare(password, student.password);
   if (!match) throw new ApiError(401, "Invalid credentials");
 
@@ -52,7 +41,6 @@ async function loginStudent({ identifier, password }) {
 async function loginTeacher({ email, password }) {
   const teacher = await Teacher.findOne({ email }).select("+password");
   if (!teacher) throw new ApiError(401, "Invalid credentials");
-
   const match = await bcrypt.compare(password, teacher.password);
   if (!match) throw new ApiError(401, "Invalid credentials");
 
@@ -72,10 +60,4 @@ function sanitizeTeacher(teacher) {
   return { ...obj, role: "teacher" };
 }
 
-module.exports = {
-  signupStudent,
-  loginStudent,
-  loginTeacher,
-  sanitizeStudent,
-  sanitizeTeacher,
-};
+module.exports = { signupStudent, loginStudent, loginTeacher, sanitizeStudent, sanitizeTeacher };

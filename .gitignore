@@ -3,5 +3,6 @@ node_modules
 uploads/*
 !uploads/.gitkeep
 *.log
-package-lock.json
-package.json
+
+frontend/node_modules
+frontend/dist

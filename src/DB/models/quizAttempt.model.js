@@ -17,11 +17,7 @@ const quizAttemptSchema = new mongoose.Schema(
     student: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
     answers: { type: [answerSchema], default: [] },
     scorePercent: { type: Number, default: null },
-    status: {
-      type: String,
-      enum: ["in_progress", "completed"],
-      default: "in_progress",
-    },
+    status: { type: String, enum: ["in_progress", "completed"], default: "in_progress" },
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date, default: null },
   },
