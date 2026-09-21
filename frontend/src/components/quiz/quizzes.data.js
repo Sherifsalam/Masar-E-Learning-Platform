@@ -1,0 +1,38 @@
+export const QUIZZES = [
+  {
+    tag: "Published",
+    tagBg: "var(--success-tint)",
+    tagColor: "var(--success)",
+    title: "Cell division — chapter check",
+    meta: "10 questions · 15 min · 26/28 completed",
+    pct: 85,
+    primaryLabel: null,
+  },
+  {
+    tag: "Published",
+    tagBg: "var(--success-tint)",
+    tagColor: "var(--success)",
+    title: "Photosynthesis pop quiz",
+    meta: "8 questions · 10 min · 28/28 completed",
+    pct: 81,
+    primaryLabel: null,
+  },
+  {
+    tag: "Draft",
+    tagBg: "var(--canvas)",
+    tagColor: "var(--ink-soft)",
+    title: "Genetics — mid-unit test",
+    meta: "12 questions · not yet published",
+    pct: 0,
+    primaryLabel: "Continue editing",
+  },
+  {
+    tag: "Scheduled",
+    tagBg: "var(--late-tint)",
+    tagColor: "var(--late)",
+    title: "Ecosystems — final review",
+    meta: "15 questions · opens Sept 8, 9:00 AM",
+    pct: 0,
+    primaryLabel: null,
+  },
+];
